@@ -2,14 +2,6 @@ import pytest
 from rest_framework.test import APIClient
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-import django
-from django.conf import settings
-
-def pytest_configure():
-    settings.DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
 
 @pytest.fixture
 def api_client():
