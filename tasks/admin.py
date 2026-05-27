@@ -4,7 +4,7 @@ from .models import Task,Project
 # Register your models here.
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ['id','name','owner','task_cound','created_at']
+    list_display = ['id','name','owner','task_count','created_at']
     list_filter = ['owner']
     search_fields = ['name','description']
     
