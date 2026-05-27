@@ -58,6 +58,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database — uses DATABASE_URL on Railway, falls back to .env on local
 DATABASE_URL = os.getenv('DATABASE_URL')
 
+# Railway uses 'postgres://' but dj-database-url needs 'postgresql://'
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
