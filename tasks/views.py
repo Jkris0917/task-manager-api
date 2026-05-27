@@ -37,8 +37,11 @@ def login(request):
 
 @api_view(['POST'])
 def logout(request):
-    request.user.auth_token.delete()
-    return Response({"message":"Logged out successfully"})
+    try:
+        request.user.auth_token.delete()
+    except (AttributeError, Token.DoesNotExist):
+        pass
+    return Response({"message": "Logged out successfully"})
 
 @api_view(['GET','POST'])
 def project_list(request):
@@ -91,7 +94,7 @@ def task_list(request,project_pk):
         if status_filter:
             task = task.filter(status=status_filter)
         if priority_filter:
-            task = task.filter(status=priority_filter)
+            task = task.filter(priority=priority_filter)
             
         return Response(TaskSerializer(task, many=True).data)
     
@@ -99,7 +102,7 @@ def task_list(request,project_pk):
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(project=project)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['GET','PUT','DELETE'])
