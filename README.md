@@ -26,6 +26,9 @@ per-user project isolation and real-time progress reporting.
 | GET/PUT/DELETE | `/api/projects/<id>/tasks/<id>/` | Task detail | Required |
 | GET | `/api/projects/<id>/summary/` | Project stats | Required |
 
+## Live API
+Base URL: https://task-manager-api-production-d89b.up.railway.app
+
 ## Tech Stack
 
 - Python 3.12
