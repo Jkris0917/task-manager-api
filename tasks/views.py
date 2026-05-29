@@ -5,6 +5,7 @@ from .models import Project,Task
 from .serializers import (ProjectSerializer,TaskSerializer,RegisterSerializer)
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
+from .filters import TaskFilter
 
 
 @api_view(['POST'])
@@ -61,21 +62,19 @@ def project_detail(request, pk):
 def task_list(request,project_pk):
     try:
         project = Project.objects.get(pk=project_pk, owner=request.user)
-        print(f"DEBUG: Found project {project.id} - {project.name}")
     except Project.DoesNotExist:
         return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'GET':
-        task = project.tasks.all()
-        
-        status_filter = request.query_params.get('status')
-        priority_filter = request.query_params.get('priority')
-        if status_filter:
-            task = task.filter(status=status_filter)
-        if priority_filter:
-            task = task.filter(status=priority_filter)
-            
-        return Response(TaskSerializer(task, many=True).data)
+        tasks = project.tasks.all()
+        filterset = TaskFilter(request.query_params, queryset=tasks)
+        ordering = request.query_params.get('ordering', '-created_at')
+        allowed_orderings = ['created_at', '-created_at', 'deadline', '-deadline', 'priority', 'title', '-title']
+        if ordering in allowed_orderings:
+            tasks = filterset.qs.order_by(ordering)
+        else:
+            tasks = filterset.qs
+        return Response(TaskSerializer(tasks, many=True).data)
     
     if request.method == 'POST':
         serializer = TaskSerializer(data=request.data)
