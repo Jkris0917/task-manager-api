@@ -120,3 +120,35 @@ def test_project_summary(auth_client):
     assert response.data['total_tasks'] == 3
     assert response.data['by_status']['done'] == 2
     assert response.data['completion'] == '67%'
+    
+# ─── Filter Test ─────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_filter_task_by_priority(auth_client):
+    client, user = auth_client
+    project = Project.objects.create(name='Test Project', owner=user)
+    Task.objects.create(title='T1', project=project, priority='high')
+    Task.objects.create(title='T2', project=project, priority='high')
+    Task.objects.create(title='T3', project=project, priority='low')
+    response = client.get(f'/api/projects/{project.id}/tasks/?priority=high')
+    assert len(response.data) == 2
+    
+@pytest.mark.django_db
+def test_filter_task_combined(auth_client):
+    client, user = auth_client
+    project = Project.objects.create(name='Test Project', owner=user)
+    Task.objects.create(title='T1', project=project,status='todo', priority='high')
+    Task.objects.create(title='T2', project=project,status='todo', priority='low')
+    Task.objects.create(title='T3', project=project,status='done', priority='high')
+    Task.objects.create(title='T4', project=project,status='done', priority='low')
+    response = client.get(f'/api/projects/{project.id}/tasks/?status=todo&priority=high')
+    assert len(response.data) == 1
+    
+@pytest.mark.django_db
+def test_task_ordering(auth_client):
+    client, user = auth_client
+    project = Project.objects.create(name='Test Project', owner=user)
+    Task.objects.create(title='A Task', project=project)
+    Task.objects.create(title='B Task', project=project)
+    response = client.get(f'/api/projects/{project.id}/tasks/?ordering=title')
+    assert response.data[0]['title'] == 'A Task'
