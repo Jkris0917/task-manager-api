@@ -8,8 +8,13 @@ from rest_framework.permissions import AllowAny
 from .filters import TaskFilter
 from .permissions import is_owner, is_member_or_above, is_viewer_or_above
 from django.contrib.auth.models import User
+from drf_spectacular.utils import extend_schema
 
-
+@extend_schema(
+    request=RegisterSerializer,
+    responses={201: RegisterSerializer},
+    description='Register a new user and receive JWT tokens.'
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -25,8 +30,22 @@ def register(request):
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema(
+    responses={200: ProjectSerializer(many=True)},
+    description='List all projects the authenticated user is a member of.'
+)
+@extend_schema(
+    methods=['POST'],
+    request=ProjectSerializer,
+    responses={201: ProjectSerializer},
+    description='Create a new project. Creator is auto-assigned as owner.'
+)
 @api_view(['GET','POST'])
 def project_list(request):
+    """
+    GET: List all projects the authenticated user is a member of.
+    POST: Create a new project. The creator is automatically assigned as owner.
+    """
     if request.method == 'GET':
         projects = Project.objects.filter(members__user=request.user)
         serializer = ProjectSerializer(projects,many=True)
@@ -46,6 +65,11 @@ def project_list(request):
     
 @api_view(['GET','PUT','DELETE'])
 def project_detail(request, pk):
+    """
+    GET: Retrieve project details. Only members can view.
+    PUT: Update project details. Only owners can edit.
+    DELETE: Delete project. Only owners can delete.
+    """
     try:
         project = Project.objects.get(pk=pk)
     except Project.DoesNotExist:
@@ -73,6 +97,10 @@ def project_detail(request, pk):
     
 @api_view(['GET', 'POST'])
 def task_list(request,project_pk):
+    """
+    GET: List all tasks in a project. Only members can view.
+    POST: Create a new task in the project. Only members can create tasks.
+    """
     try:
         project = Project.objects.get(pk=project_pk)
     except Project.DoesNotExist:
@@ -102,6 +130,11 @@ def task_list(request,project_pk):
     
 @api_view(['GET','PUT','DELETE'])
 def task_detail(request, pk, project_pk):
+    """
+    GET: Retrieve task details. Only members can view.
+    PUT: Update task details. Only members can edit.
+    DELETE: Delete task. Only members can delete.
+    """
     try:
         project = Project.objects.get(pk=project_pk)
         task = Task.objects.get(pk=pk, project=project)
@@ -130,6 +163,10 @@ def task_detail(request, pk, project_pk):
     
 @api_view(['GET'])
 def project_summary(request,project_pk):
+    """
+    GET: Retrieve project summary including total tasks, tasks by status, overdue tasks, and completion percentage. Only members can view.
+
+    """
     try:
         project = Project.objects.get(pk=project_pk)
     except Project.DoesNotExist:
@@ -155,6 +192,11 @@ def project_summary(request,project_pk):
 
 @api_view(['POST'])
 def add_project_member(request,project_pk):
+    """
+    POST: Add a member to the project. Only owners can add members.
+    Request body should include 'username' of the user to add and optional 'role' (default 'viewer').
+    
+    """
     try:
         project = Project.objects.get(pk=project_pk)
     except Project.DoesNotExist:
@@ -187,6 +229,9 @@ def add_project_member(request,project_pk):
     
 @api_view(['DELETE'])
 def delete_project_member(request,project_pk,user_pk):
+    """
+    DELETE: Remove a member from the project. Only owners can remove members. Owners cannot remove themselves.
+    """
     try:
         project = Project.objects.get(pk=project_pk)
     except Project.DoesNotExist:

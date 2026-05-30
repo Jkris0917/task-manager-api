@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_celery_beat',
     'django_celery_results',
+    'drf_spectacular',
     'tasks',
 ]
 
@@ -119,7 +120,8 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -127,4 +129,11 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,      # hint: what does this mean?
     'BLACKLIST_AFTER_ROTATION': True,   # hint: needs an extra installed app
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Task Manager API',
+    'DESCRIPTION': 'A RESTful API for project and task management with JWT auth and RBAC',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
