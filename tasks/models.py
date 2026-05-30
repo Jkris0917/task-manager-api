@@ -43,3 +43,20 @@ class Task(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        
+class ProjectMember(models.Model):
+    ROLE_CHOICES = [
+        ('owner', 'Owner'),
+        ('member', 'Member'),
+        ('viewer', 'Viewer'),
+    ]
+    
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='members')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='project_memberships')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='viewer')
+    
+    class Meta:
+        unique_together = ['user','project']
+        
+    def __str__(self):
+        return f"{self.user.username} - {self.role} in {self.project.name}"
